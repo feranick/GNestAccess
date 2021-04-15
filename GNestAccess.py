@@ -3,7 +3,7 @@
 '''
 ***********************************************************
 * Google Nest Device Access GNestAccess
-* version: 20210414a
+* version: 20210415b
 * By: Nicola Ferralis <feranick@hotmail.com>
 ***********************************************************
 '''
@@ -24,7 +24,7 @@ def main():
     #g.setDeviceTemperature(g.device_1_name, 18)
     g.setFanON(dev1)
     g.getFanTrait(1)
-    
+
 
 ####################################################################
 # Class GoogleNest
@@ -33,7 +33,7 @@ def main():
 class GoogleNest:
     def __init__(self):
         self.conf = GNestConfig()
-        self.url = 'https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
+        self.url = '\nEnter this URL in a browser and follow the instructins to get a code:\n\n https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
         
         print(self.url)
         self.code = input("\nType code: ")
@@ -143,10 +143,13 @@ class GoogleNest:
         self.sendCmdDevice(device, data)
     
     def getFanTrait(self, dev):
-        dev_name, traits = self.getDevices(dev)
-        print(traits,"\n\n")
-        self.fanMode = traits['devices'][dev]['traits']['sdm.devices.traits.Fan']['timerMode']
-        print("Fan",dev,"is:",self.fanMode)
+        try:
+            dev_name, traits = self.getDevices(dev)
+            self.fanMode = traits['devices'][dev]['traits']['sdm.devices.traits.Fan']['timerMode']
+            print("Fan",dev,"is:",self.fanMode)
+        except:
+            print("\n\n Failed to get Fan status\n")
+            self.fanMode = "OFF"
         return self.fanMode
         
 ####################################################################
@@ -225,7 +228,7 @@ class GNestConfig():
         
 
 #************************************
-''' Main initialization routine '''
+# Main initialization routine
 #************************************
 if __name__ == "__main__":
     sys.exit(main())
