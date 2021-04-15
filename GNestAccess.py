@@ -23,6 +23,8 @@ def main():
     g.getDeviceStats(g.device_1_name)
     #g.setDeviceTemperature(g.device_1_name, 18)
     #g.setFanON(g.device_1_name)
+    g.getFanTrait()
+    
 
 ####################################################################
 # Class GoogleNest
@@ -46,11 +48,10 @@ class GoogleNest:
     
     # Get tokens
     def getToken(self):
-
         response = requests.post('https://www.googleapis.com/oauth2/v4/token', params=self.params)
 
         response_json = response.json()
-        print(response_json)
+        #print(response_json)
         self.access_token = response_json['token_type'] + ' ' + str(response_json['access_token'])
         print('Access token: ' + self.access_token)
         self.refresh_token = response_json['refresh_token']
@@ -74,7 +75,7 @@ class GoogleNest:
             }
 
         response = requests.get(url_structures, headers=headers)
-        print(response.json())
+        #print(response.json())
         
     # Get devices
     def getDevices(self):
@@ -86,13 +87,15 @@ class GoogleNest:
             }
 
         response = requests.get(url_get_devices, headers=headers)
-        print(response.json())
+        #print(response.json())
 
         response_json = response.json()
         self.device_0_name = response_json['devices'][0]['name']
         self.device_1_name = response_json['devices'][1]['name']
-        print(self.device_0_name)
-        print(self.device_1_name)
+        #print(self.device_0_name)
+        #print(self.device_1_name)
+        
+        return response.json()
 
     # Get Device Stats
     def getDeviceStats(self, device):
@@ -111,6 +114,9 @@ class GoogleNest:
         temperature = response_json['traits']['sdm.devices.traits.Temperature']['ambientTemperatureCelsius']
         print('Temperature:', temperature)
         
+        fan = response_json['traits']['sdm.devices.traits.Fan']['timerMode']
+        print('Fan:', fan)
+        
     
     def sendCmdDevice(self, device, data):
         url_set_mode = 'https://smartdevicemanagement.googleapis.com/v1/' + device + ':executeCommand'
@@ -121,7 +127,7 @@ class GoogleNest:
         }
         
         response = requests.post(url_set_mode, headers=headers, data=data)
-        print(response.json())
+        #print(response.json())
         
     def setDeviceHeat(self, device):
         data = '{ "command" : "sdm.devices.commands.ThermostatMode.SetMode", "params" : { "mode" : "HEAT" } }'
@@ -132,14 +138,21 @@ class GoogleNest:
         self.sendCmdDevice(device, data)
     
     def setFanON(self, device):
-        print(mode)
         data = '{"command" : "sdm.devices.commands.Fan.SetTimer", "params" : {"timerMode" : "ON"} }'
         self.sendCmdDevice(device, data)
         
     def setFanOFF(self, device):
-        print(mode)
         data = '{"command" : "sdm.devices.commands.Fan.SetTimer", "params" : {"timerMode" : "OFF"} }'
         self.sendCmdDevice(device, data)
+    
+    def getFanTrait(self):
+        traits = self.getDevices()
+        print(traits,"\n\n")
+        self.fanMode0 = traits['devices'][0]['traits']['sdm.devices.traits.Fan']['timerMode']
+        self.fanMode1 = traits['devices'][1]['traits']['sdm.devices.traits.Fan']['timerMode']
+        print("Fan 0 is:",self.fanMode0)
+        print("Fan 1 is:",self.fanMode1)
+        return self.fanMode0, self.fanMode1
         
 ####################################################################
 # Configuration
