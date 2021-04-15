@@ -18,12 +18,13 @@ def main():
     g.getToken()
     #g.refreshToken()
     g.getStructures()
-    g.getDevices()
-    g.getDeviceStats(g.device_0_name)
-    g.getDeviceStats(g.device_1_name)
+    dev0, tmp = g.getDevices(0)
+    dev1, tmp = g.getDevices(1)
+    g.getDeviceStats(dev0)
+    g.getDeviceStats(dev1)
     #g.setDeviceTemperature(g.device_1_name, 18)
     #g.setFanON(g.device_1_name)
-    g.getFanTrait()
+    g.getFanTrait(1)
     
 
 ####################################################################
@@ -78,7 +79,7 @@ class GoogleNest:
         #print(response.json())
         
     # Get devices
-    def getDevices(self):
+    def getDevices(self, dev):
         url_get_devices = 'https://smartdevicemanagement.googleapis.com/v1/enterprises/' + self.conf.project_id + '/devices'
 
         headers = {
@@ -90,15 +91,12 @@ class GoogleNest:
         #print(response.json())
 
         response_json = response.json()
-        self.device_0_name = response_json['devices'][0]['name']
-        self.device_1_name = response_json['devices'][1]['name']
-        #print(self.device_0_name)
-        #print(self.device_1_name)
-        
-        return response.json()
+        device_name = str(response_json['devices'][dev]['name'])
+        return device_name, response.json()
 
     # Get Device Stats
     def getDeviceStats(self, device):
+        print("DEVICE NAME:",device)
         url_get_device = 'https://smartdevicemanagement.googleapis.com/v1/' + device
 
         headers = {
@@ -145,14 +143,12 @@ class GoogleNest:
         data = '{"command" : "sdm.devices.commands.Fan.SetTimer", "params" : {"timerMode" : "OFF"} }'
         self.sendCmdDevice(device, data)
     
-    def getFanTrait(self):
-        traits = self.getDevices()
+    def getFanTrait(self, dev):
+        dev_name, traits = self.getDevices(dev)
         print(traits,"\n\n")
-        self.fanMode0 = traits['devices'][0]['traits']['sdm.devices.traits.Fan']['timerMode']
-        self.fanMode1 = traits['devices'][1]['traits']['sdm.devices.traits.Fan']['timerMode']
-        print("Fan 0 is:",self.fanMode0)
-        print("Fan 1 is:",self.fanMode1)
-        return self.fanMode0, self.fanMode1
+        self.fanMode = traits['devices'][dev]['traits']['sdm.devices.traits.Fan']['timerMode']
+        print("Fan",dev,"is:",self.fanMode)
+        return self.fanMode
         
 ####################################################################
 # Configuration
