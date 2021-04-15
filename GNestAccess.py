@@ -23,7 +23,7 @@ def main():
     g.getDeviceStats(dev0)
     g.getDeviceStats(dev1)
     #g.setDeviceTemperature(g.device_1_name, 18)
-    #g.setFanON(g.device_1_name)
+    g.setFanON(dev1)
     g.getFanTrait(1)
     
 
