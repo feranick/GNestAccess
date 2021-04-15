@@ -7,7 +7,6 @@
 * By: Nicola Ferralis <feranick@hotmail.com>
 ***********************************************************
 '''
-print(__doc__)
 
 import requests, sys, os.path, time, configparser, logging
 from datetime import datetime
