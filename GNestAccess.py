@@ -3,7 +3,7 @@
 '''
 ***********************************************************
 * Google Nest Device Access GNestAccess
-* version: 20210415b
+* version: 20210416a
 * By: Nicola Ferralis <feranick@hotmail.com>
 ***********************************************************
 '''
@@ -67,9 +67,10 @@ class GoogleNest:
             ('refresh_token', self.refresh_token),
             ('grant_type', 'refresh_token'),
         )
-        response = requests.post('https://www.googleapis.com/oauth2/v4/token', params=self.params)
+        response = requests.post('https://www.googleapis.com/oauth2/v4/token', params=params)
 
         response_json = response.json()
+        #print(response_json)
         self.access_token = response_json['token_type'] + ' ' + response_json['access_token']
         #print('Access token: ' + self.access_token)
         print("\n Access token refreshed")
@@ -156,9 +157,10 @@ class GoogleNest:
             dev_name, traits = self.getDevices(dev)
             self.fanMode = traits['devices'][dev]['traits']['sdm.devices.traits.Fan']['timerMode']
             print("Fan",dev,"is:",self.fanMode)
-        except:
+        except RuntimeError as arg:
             print("\n\n Failed to get Fan status\n")
-            self.fanMode = "OFF"
+            print(arg)
+            #self.fanMode = "OFF"
         return self.fanMode
         
 ####################################################################
