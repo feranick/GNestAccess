@@ -7,6 +7,7 @@
 * By: Nicola Ferralis <feranick@hotmail.com>
 ***********************************************************
 '''
+print(__doc__)
 
 import requests, sys, os.path, time, configparser, logging
 from datetime import datetime
@@ -33,10 +34,10 @@ def main():
 class GoogleNest:
     def __init__(self):
         self.conf = GNestConfig()
-        self.url = '\nEnter this URL in a browser and follow the instructins to get a code:\n\n https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
+        self.url = '\033[1mEnter this URL in a browser and follow the instructions to get an access code:\033[0m\n\n https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
         
         print(self.url)
-        self.code = input("\nPaste code: ")
+        self.code = input("\n\033[1mPaste access code: \033[0m")
         
         self.params = (
             ('client_id', self.conf.client_id),
@@ -98,9 +99,9 @@ class GoogleNest:
 
         response = requests.get(url_get_devices, headers=headers)
         #print(response.json())
-
         response_json = response.json()
         device_name = str(response_json['devices'][dev]['name'])
+        #print(device_name)
         return device_name, response.json()
 
     # Get Device Stats
