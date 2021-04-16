@@ -11,7 +11,7 @@
 import requests, sys, os.path, time, configparser, logging
 from datetime import datetime
 from pathlib import Path
-
+'''
 def main():
     g = GoogleNest()
     g.getToken()
@@ -24,7 +24,7 @@ def main():
     #g.setDeviceTemperature(g.device_1_name, 18)
     g.setFanON(dev1)
     g.getFanTrait(1)
-
+'''
 
 ####################################################################
 # Class GoogleNest
@@ -36,7 +36,7 @@ class GoogleNest:
         self.url = '\nEnter this URL in a browser and follow the instructins to get a code:\n\n https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
         
         print(self.url)
-        self.code = input("\nType code: ")
+        self.code = input("\nPaste code: ")
         
         self.params = (
             ('client_id', self.conf.client_id),
@@ -45,6 +45,7 @@ class GoogleNest:
             ('grant_type', 'authorization_code'),
             ('redirect_uri', self.conf.redirect_uri),
         )
+        self.time = time.time()
     
     # Get tokens
     def getToken(self):
@@ -56,14 +57,22 @@ class GoogleNest:
         print('Access token: ' + self.access_token)
         self.refresh_token = response_json['refresh_token']
         print('Refresh token: ' + self.refresh_token)
+        self.time = time.time()
 
     # Refresh token
     def refreshToken(self):
+        params = (
+            ('client_id', self.conf.client_id),
+            ('client_secret', self.conf.client_secret),
+            ('refresh_token', self.refresh_token),
+            ('grant_type', 'refresh_token'),
+        )
         response = requests.post('https://www.googleapis.com/oauth2/v4/token', params=self.params)
 
         response_json = response.json()
         self.access_token = response_json['token_type'] + ' ' + response_json['access_token']
-        print('Access token: ' + self.access_token)
+        #print('Access token: ' + self.access_token)
+        print("\n Access token refreshed")
         
     # Get structures
     def getStructures(self):
