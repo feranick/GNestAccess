@@ -3,13 +3,14 @@
 '''
 ***********************************************************
 * Google Nest Device Access GNestAccess
-* version: 20210416a
+* version: 20210428b
 * By: Nicola Ferralis <feranick@hotmail.com>
 ***********************************************************
 '''
 print(__doc__)
 
 import requests, sys, os.path, time, configparser, logging
+import webbrowser
 from datetime import datetime
 from pathlib import Path
 '''
@@ -32,12 +33,17 @@ def main():
 ####################################################################
         
 class GoogleNest:
-    def __init__(self):
+    def __init__(self, code):
         self.conf = GNestConfig()
-        self.url = '\033[1mEnter this URL in a browser and follow the instructions to get an access code:\033[0m\n\n https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
+        print('\033[1mEnter this URL in a browser and follow the instructions to get an access code:\033[0m\n')
+        self.url = 'https://nestservices.google.com/partnerconnections/'+self.conf.project_id+'/auth?redirect_uri='+self.conf.redirect_uri+'&access_type=offline&prompt=consent&client_id='+self.conf.client_id+'&response_type=code&scope=https://www.googleapis.com/auth/sdm.service'
         
         print(self.url)
-        self.code = input("\n\033[1mPaste access code: \033[0m")
+        webbrowser.open(self.url,new=1,autoraise=True)
+        if code == "":
+            self.code = input("\n\033[1mPaste access code: \033[0m")
+        else:
+            self.code = code
         
         self.params = (
             ('client_id', self.conf.client_id),
@@ -106,26 +112,34 @@ class GoogleNest:
 
     # Get Device Stats
     def getDeviceStats(self, device):
-        print("DEVICE NAME:",device)
+        #print("DEVICE NAME:",device)
         url_get_device = 'https://smartdevicemanagement.googleapis.com/v1/' + device
-
         headers = {
         'Content-Type': 'application/json',
         'Authorization': self.access_token,
         }
-
-        response = requests.get(url_get_device, headers=headers)
-
-        response_json = response.json()
-        humidity = response_json['traits']['sdm.devices.traits.Humidity']['ambientHumidityPercent']
-        print('Humidity:', humidity)
-        temperature = response_json['traits']['sdm.devices.traits.Temperature']['ambientTemperatureCelsius']
-        print('Temperature:', temperature)
+        try:
+            response = requests.get(url_get_device, headers=headers)
+            response_json = response.json()
+            self.humidity = response_json['traits']['sdm.devices.traits.Humidity']['ambientHumidityPercent']
+            #print('Humidity:', self.humidity)
+            self.temperature = response_json['traits']['sdm.devices.traits.Temperature']['ambientTemperatureCelsius']
+            #print('Temperature:', self.temperature)
         
-        fan = response_json['traits']['sdm.devices.traits.Fan']['timerMode']
-        print('Fan:', fan)
+            tmp = response_json['traits']['sdm.devices.traits.Fan']['timerMode']
+            if tmp == "ON":
+                self.fanStatus = 1
+            else:
+                self.fanStatus = 0
+            
+            #print('Fan:', self.fanStatus)
+        except RuntimeError as arg:
+            print("\n\n Failed to get Device Statistics\n")
+            print(arg)
+            self.humidity = 0
+            self.temperature = 0
+            self.fanStatus = 0
         
-    
     def sendCmdDevice(self, device, data):
         url_set_mode = 'https://smartdevicemanagement.googleapis.com/v1/' + device + ':executeCommand'
 
