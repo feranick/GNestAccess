@@ -3,8 +3,9 @@
 '''
 ***********************************************************
 * Google Nest Device Access GNestAccess
-* version: 20210428b
+* version: 20210429a
 * By: Nicola Ferralis <feranick@hotmail.com>
+* Google Nest API: https://tinyurl.com/673rxvmf
 ***********************************************************
 '''
 print(__doc__)
@@ -15,17 +16,23 @@ from datetime import datetime
 from pathlib import Path
 '''
 def main():
-    g = GoogleNest()
+    if len(sys.argv) > 1:
+        code = sys.argv[1]
+    else:
+        code = ""
+    g = GoogleNest(code)
     g.getToken()
     #g.refreshToken()
     g.getStructures()
     dev0, tmp = g.getDevices(0)
     dev1, tmp = g.getDevices(1)
     g.getDeviceStats(dev0)
-    g.getDeviceStats(dev1)
+    #g.getDeviceStats(dev1)
     #g.setDeviceTemperature(g.device_1_name, 18)
-    g.setFanON(dev1)
-    g.getFanTrait(1)
+    #g.setFanON(dev1)
+    #g.getFanTrait(1)
+    print("Fan status:", g.fanStatus)
+    print("HVAC status:", g.hvacStatus)
 '''
 
 ####################################################################
@@ -125,20 +132,27 @@ class GoogleNest:
             #print('Humidity:', self.humidity)
             self.temperature = response_json['traits']['sdm.devices.traits.Temperature']['ambientTemperatureCelsius']
             #print('Temperature:', self.temperature)
-        
+            
+            '''
             tmp = response_json['traits']['sdm.devices.traits.Fan']['timerMode']
             if tmp == "ON":
                 self.fanStatus = 1
             else:
                 self.fanStatus = 0
-            
             #print('Fan:', self.fanStatus)
+            #print("STATUS:",response_json['traits']['sdm.devices.traits.ThermostatHvac']['status'])
+            '''
+            self.fanStatus = response_json['traits']['sdm.devices.traits.Fan']['timerMode']
+            self.hvacStatus = response_json['traits']['sdm.devices.traits.ThermostatHvac']['status']
+            
+
         except RuntimeError as arg:
             print("\n\n Failed to get Device Statistics\n")
             print(arg)
             self.humidity = 0
             self.temperature = 0
-            self.fanStatus = 0
+            self.fanStatus = "OFF"
+            self.hvacStatus = "OFF"
         
     def sendCmdDevice(self, device, data):
         url_set_mode = 'https://smartdevicemanagement.googleapis.com/v1/' + device + ':executeCommand'
